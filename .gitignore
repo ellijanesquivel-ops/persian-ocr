@@ -3,3 +3,9 @@ __pycache__/
 *.py[cod]
 
 debug_mask_*.png
+
+photos/
+photos_out/
+src/predict_photos/
+data/*.png
+src/debug_check.py
