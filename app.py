@@ -28,7 +28,7 @@ if alphabet_img.exists():
 try:
     model = get_model()
 except FileNotFoundError:
-    st.error("Model file models/cnn_v3.pt not found. Train it first: python src\\train_v3.py")
+    st.error("Model file models/cnn_v4.pt not found. Train it first: python src\\train_v3.py")
     st.stop()
 
 with st.container(border=True):
