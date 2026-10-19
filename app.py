@@ -58,7 +58,7 @@ st.write("Here is where you test out our app and see if it can recognize the Per
          "You can insert an image of a persian letter in the box below and click the 'Predict' button "
          "to see the model's prediction.")
 
-alphabet_img = BASE / "persian letters.png"
+alphabet_img = BASE / "persian-letters.png"
 if alphabet_img.exists():
     st.image(str(alphabet_img), caption="Persian Alphabets")
 
