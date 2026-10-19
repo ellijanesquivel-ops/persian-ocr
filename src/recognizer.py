@@ -8,7 +8,7 @@ from model import Net
 from preprocess import normalize
 
 BASE = Path(__file__).resolve().parent.parent
-MODEL_PATH = BASE / "models" / "cnn_v3.pt"
+MODEL_PATH = BASE / "models" / "cnn_v4.pt"
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
 MAX_IMAGE_SIZE = 2000             # pixels
 

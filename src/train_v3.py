@@ -45,9 +45,22 @@ Xtr, ytr = gather(orig_ids("train"), w_train)
 Xva, yva = gather(orig_ids("val"), w_val)
 print("train/val images:", len(ytr), len(yva))
 
+class Thickness:
+    """Randomly thicken or thin the strokes, like a photo of a bold or faint letter."""
+    def __call__(self, x):
+        r = np.random.rand()
+        if r < 0.25:
+            return torch.nn.functional.max_pool2d(x.unsqueeze(0), 3, 1, 1).squeeze(0)
+        if r < 0.5:
+            return -torch.nn.functional.max_pool2d(-x.unsqueeze(0), 3, 1, 1).squeeze(0)
+        return x
+
+
 aug = v2.Compose([
-    v2.RandomAffine(degrees=10, translate=(0.08, 0.08), scale=(0.85, 1.1)),
-    v2.RandomApply([v2.GaussianBlur(3, sigma=(0.1, 1.0))], p=0.3),
+    v2.RandomAffine(degrees=12, translate=(0.08, 0.08), scale=(0.8, 1.1), shear=8),
+    v2.RandomPerspective(distortion_scale=0.25, p=0.5),
+    v2.RandomApply([v2.GaussianBlur(5, sigma=(0.3, 1.8))], p=0.5),
+    Thickness(),
 ])
 
 
@@ -104,7 +117,7 @@ for ep in range(1, EPOCHS + 1):
     mark = ""
     if acc > best:
         best = acc
-        torch.save(model.state_dict(), "models/cnn_v3.pt")
+        torch.save(model.state_dict(), "models/cnn_v4.pt")
         mark = "  <- saved"
     print(f"epoch {ep:2d}  loss {total / len(ytr):.3f}  val {acc * 100:.1f}%  "
           f"zal {zal * 100:.0f}%  zay {zay * 100:.0f}%{mark}")
