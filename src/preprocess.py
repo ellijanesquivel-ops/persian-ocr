@@ -10,8 +10,10 @@ def normalize(img):
     if img.ndim == 3:
         img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
     _, mask = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+
     if mask.mean() > 127:  # mostly white: background is light, so invert
         mask = 255 - mask
+
     ys, xs = np.where(mask > 0)
     if len(ys) == 0:
         raise ValueError("No letter found in the image")
