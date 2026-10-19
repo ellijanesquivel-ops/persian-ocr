@@ -1,55 +1,18 @@
-import sys
+﻿import sys
 from pathlib import Path
 
-import numpy as np
 import streamlit as st
-import torch
-from PIL import Image, ImageOps
 
 BASE = Path(__file__).parent
 sys.path.insert(0, str(BASE / "src"))
 
-from labels import LETTERS          # noqa: E402
-from model import Net               # noqa: E402
-from preprocess import normalize    # noqa: E402
-
-MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
-MAX_IMAGE_SIZE = 2000             # pixels
-AMBIGUOUS = {10, 12}              # classes with identical training images
+from labels import LETTERS                                # noqa: E402
+from recognizer import load_model, open_image, predict    # noqa: E402
 
 
 @st.cache_resource
-def load_model():
-    net = Net()
-    net.load_state_dict(torch.load(BASE / "models" / "cnn.pt", map_location="cpu"))
-    net.eval()
-    return net
-
-
-def read_image(uploaded):
-    if uploaded.size > MAX_FILE_SIZE:
-        raise ValueError("The file is larger than 10MB.")
-    try:
-        img = Image.open(uploaded)
-        img = ImageOps.exif_transpose(img)
-        if img.mode in ("RGBA", "LA") or "transparency" in img.info:
-            img = img.convert("RGBA")
-            white = Image.new("RGBA", img.size, (255, 255, 255, 255))
-            img = Image.alpha_composite(white, img)
-        img = img.convert("RGB")
-    except Exception:
-        raise ValueError("This file is not a readable image (it may be empty or corrupted).")
-    img.thumbnail((MAX_IMAGE_SIZE, MAX_IMAGE_SIZE))
-    return img
-
-
-def predict(model, img):
-    x = normalize(np.array(img))  # same preprocessing as training
-    t = torch.tensor(x).unsqueeze(0).unsqueeze(0)
-    with torch.no_grad():
-        probs = torch.softmax(model(t), dim=1)[0]
-    top = torch.topk(probs, 3)
-    return [(int(i), float(p)) for p, i in zip(top.values, top.indices)], x
+def get_model():
+    return load_model()
 
 
 st.set_page_config(layout="centered", page_title="Persian Letter Recognition")
@@ -63,9 +26,9 @@ if alphabet_img.exists():
     st.image(str(alphabet_img), caption="Persian Alphabets")
 
 try:
-    model = load_model()
+    model = get_model()
 except FileNotFoundError:
-    st.error("Model file models/cnn.pt not found. Train the model first: python src\\train.py")
+    st.error("Model file models/cnn_v3.pt not found. Train it first: python src\\train_v3.py")
     st.stop()
 
 with st.container(border=True):
@@ -75,7 +38,7 @@ with st.container(border=True):
     if uploaded is not None:
         img = None
         try:
-            img = read_image(uploaded)
+            img = open_image(uploaded, uploaded.size)
         except ValueError as e:
             st.error(str(e))
 
@@ -103,15 +66,11 @@ with st.container(border=True):
                         st.image(processed, clamp=True, width=96)
                     st.write("Top 3: " + ", ".join(f"{LETTERS[i][0]} {p * 100:.0f}%" for i, p in top))
                     st.caption("Confidence is the model's own score. It is not proof that the answer is correct.")
-                    if best in AMBIGUOUS:
-                        st.warning("Known limitation: the training data has identical images for "
-                                   "dhal (U+0630) and zay (U+0632), so this model cannot tell these two letters apart.")
 
-# Information about limitations
 with st.expander("ℹ️ Image Guidelines"):
     st.write("""
     - Maximum file size: 10MB
     - Large images will be automatically resized
     - Supported formats: PNG, JPG, JPEG
-    - Processing time depends on image size
+    - One Persian letter per image, dark letter on a light background works best
     """)
