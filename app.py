@@ -1,4 +1,5 @@
-﻿import sys
+﻿from operator import index
+import sys
 from pathlib import Path
 
 import streamlit as st
@@ -59,12 +60,14 @@ with st.container(border=True):
                         st.markdown(f"<div style='font-size:96px;text-align:center'>{letter}</div>",
                                     unsafe_allow_html=True)
                     with c2:
-                        st.write(f"**Slide label:** {label}")
-                        st.write(f"**Unicode:** U+{ord(letter):04X}")
-                        st.write(f"**Confidence:** {conf * 100:.1f}%")
+                        st.header(f"**Predicted letter:** {letter}")
+                        st.subheader(f"**Text Representation:** [ {label} ]")
                         st.caption("What the model saw:")
                         st.image(processed, clamp=True, width=96)
-                    st.write("Top 3: " + ", ".join(f"{LETTERS[i][0]} {p * 100:.0f}%" for i, p in top))
+                    st.write("Top 3 Letter Prediction: " + ", ".join(f"{LETTERS[i][0]} {p * 100:.0f}%" for i, p in top))
+                    st.write("Top 3 Text Representations: " + ", ".join(f"{LETTERS[i][1]} {p * 100:.0f}%" for i, p in top))
+                    st.caption(f"**Unicode:** U+{ord(letter):04X}")
+                    st.caption(f"**Confidence:** {conf * 100:.1f}%")
                     st.caption("Confidence is the model's own score. It is not proof that the answer is correct.")
 
 with st.expander("ℹ️ Image Guidelines"):
